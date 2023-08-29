@@ -9,29 +9,34 @@ const profileData = fs.readFileSync("./tours.json", "utf-8");
 
 // console.log(profileData)
 const parseProfileData = JSON.parse(profileData);
-// console.log(parseProfileData.data[parseProfileData.data.length-1].id);
-
+// console.log(parseProfileData);
 app.use(express.json());
+
 
 app.get("/dashboard/:tourId", (req, res) => {
   console.log(req.params.tourId, "==>>params");
   console.log(typeof req.params.tourId, "==>>typeof");
   console.log(parseProfileData?.data.length, "==>>length");
+  try {
+    
+    const singleTour = parseProfileData?.data?.find(
+      (tour) => tour.id == req.params.tourId
+    );
+    if (typeof singleTour === 'undefined') {
+      throw new Error('tourId is undefined');
+    }
+    console.log(singleTour, "===>> singleTour");
 
-  if (req.params.tourId * 1 > parseProfileData?.data.length) {
-    return res.status(404).send("Data not available");
+    res.status(200).json({
+      status: "success",
+      data: singleTour,
+    });
+  
+    
+  } catch (error) {
+    console.error('Error:', error.message);
+    res.status(404).send("Data not available");
   }
-
-  const singleTour = parseProfileData?.data?.find(
-    (tour) => tour.id == req.params.tourId
-  );
-
-  console.log(singleTour, "===>> singleTour");
-
-  res.status(200).json({
-    status: "success",
-    data: singleTour,
-  });
 });
 app.post("/profiles", (req, res) => {
   console.log(req.body);
@@ -47,7 +52,9 @@ app.post("/profiles", (req, res) => {
       status: "Rejected",
       data: "Missing Fields",
     });
-  }
+  }else{
+
+
   const dataPushId = {
     id: parseProfileData.data[parseProfileData.data.length - 1].id + 1,
     ...req.body,
@@ -59,6 +66,8 @@ app.post("/profiles", (req, res) => {
       data: "Data added Successfully",
     });
   });
+}
+
 });
 
 app.delete("/profile/:personId", (req, res) => {
@@ -84,7 +93,7 @@ app.put("/profile/:personId", (req, res) => {
         }
     })
     const datatoWriteInDb = {
-        id: req.params.personId ,
+        id: req.params.personId*1,
         ...req.body
     }
 
